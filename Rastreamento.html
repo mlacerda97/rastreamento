@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rastreamento de Encomendas - E4Log</title>
+    <style>
+        :root {
+            --color-primary: #1e3a5f;
+            --color-primary-dark: #152942;
+            --color-secondary: #4a90e2;
+            --color-success: #28a745;
+            --color-warning: #ffc107;
+            --color-danger: #dc3545;
+            --color-gray-light: #f5f7fa;
+            --color-gray: #6c757d;
+            --color-gray-dark: #343a40;
+            --color-white: #ffffff;
+            --color-border: #dee2e6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--color-gray-light) 0%, #e8ecf1 100%);
+            color: var(--color-gray-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+            background: var(--color-white);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .header h1 {
+            color: var(--color-primary);
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: var(--color-gray);
+            font-size: 1rem;
+        }
+
+        .search-card {
+            background: var(--color-white);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--color-gray-light);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--color-secondary);
+            background: var(--color-white);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            color: var(--color-white);
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 58, 95, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: var(--color-gray);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid var(--color-border);
+            border-top: 3px solid var(--color-secondary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            display: none;
+            background: #fff5f5;
+            border-left: 4px solid var(--color-danger);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: var(--color-danger);
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .timeline-container {
+            display: none;
+            background: var(--color-white);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .timeline-container.active {
+            display: block;
+        }
+
+        .tracking-info {
+            background: var(--color-gray-light);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .tracking-info h3 {
+            color: var(--color-primary);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .tracking-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-item label {
+            font-size: 0.85rem;
+            color: var(--color-gray);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .info-item span {
+            font-size: 1rem;
+            color: var(--color-gray-dark);
+            font-weight: 500;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 50px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--color-border);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .timeline-item:nth-child(1) { animation-delay: 0.1s; }
+        .timeline-item:nth-child(2) { animation-delay: 0.2s; }
+        .timeline-item:nth-child(3) { animation-delay: 0.3s; }
+        .timeline-item:nth-child(4) { animation-delay: 0.4s; }
+        .timeline-item:nth-child(5) { animation-delay: 0.5s; }
+
+        .timeline-icon {
+            position: absolute;
+            left: -32px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-white);
+            border: 3px solid var(--color-border);
+            z-index: 1;
+            font-size: 1.2rem;
+        }
+
+        .timeline-item.status-coletada .timeline-icon {
+            border-color: var(--color-secondary);
+            background: var(--color-secondary);
+            color: var(--color-white);
+        }
+
+        .timeline-item.status-finalizada .timeline-icon {
+            border-color: var(--color-success);
+            background: var(--color-success);
+            color: var(--color-white);
+        }
+
+        .timeline-item.status-finalizada ~ .timeline-item::before {
+            background: var(--color-success);
+        }
+
+        .timeline-content {
+            background: var(--color-gray-light);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--color-border);
+            transition: all 0.3s ease;
+        }
+
+        .timeline-item.status-coletada .timeline-content {
+            border-left-color: var(--color-secondary);
+            background: #e8f4fd;
+        }
+
+        .timeline-item.status-finalizada .timeline-content {
+            border-left-color: var(--color-success);
+            background: #d4edda;
+        }
+
+        .timeline-date {
+            display: inline-block;
+            background: var(--color-white);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: 10px;
+            border: 1px solid var(--color-border);
+        }
+
+        .timeline-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: 8px;
+        }
+
+        .timeline-description {
+            color: var(--color-gray-dark);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: var(--color-gray);
+        }
+
+        .no-results svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .search-card, .timeline-container {
+                padding: 20px;
+            }
+
+            .tracking-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .timeline {
+                padding-left: 40px;
+            }
+
+            .timeline::before {
+                left: 15px;
+            }
+
+            .timeline-icon {
+                left: -27px;
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚚 Rastreamento de Encomendas</h1>
+            <p>Acompanhe o status da sua entrega em tempo real</p>
+        </div>
+
+        <div class="search-card">
+            <form id="trackingForm">
+                <div class="form-group">
+                    <label for="documentNumber">Número da Nota Fiscal (NF) ou CT-e</label>
+                    <input 
+                        type="text" 
+                        id="documentNumber" 
+                        placeholder="Ex: 12345678" 
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="cnpjCpf">CNPJ ou CPF</label>
+                    <input 
+                        type="text" 
+                        id="cnpjCpf" 
+                        placeholder="Ex: 00.000.000/0000-00" 
+                        required
+                    >
+                </div>
+                <button type="submit" class="btn" id="searchBtn">
+                    <span>🔍 Rastrear Encomenda</span>
+                </button>
+            </form>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Buscando informações da sua encomenda...</p>
+        </div>
+
+        <div class="error-message" id="errorMessage">
+            <strong>Ops!</strong> <span id="errorText"></span>
+        </div>
+
+        <div class="timeline-container" id="timelineContainer">
+            <div class="tracking-info" id="trackingInfo"></div>
+            <div class="timeline" id="timeline"></div>
+        </div>
+    </div>
+
+    <script>
+        // ===========================
+        // CONFIGURAÇÃO DA API
+        // ===========================
+        const API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsiaWRfYnNvZnQiOiIzNTNDMzIzOTM0MzMiLCJ0YWciOiJFVEwyNzciLCJ1c3VhcmlvIjoiTUFUSEVVUyIsImhvc3RuYW1lIjoiNEUyQjI3MDg2OUNENDEyRDE0MDM2NERFNThERjU2IiwiZGF0YWJhc2UiOiJBMjg1QUU0RkUzMUUwODM4RDYwRDNGRTcxQ0REMDUyMTFGRDMwNTIxQ0Y2Q0IzNzZGMDYxRDEyRTUwQzdDOTQ4MkYyRDIyMjAxRTBENzJFRDYzQzJDQ0NCQ0YzNTIxMjMxQzA3NzhFMjY2QzQ0MzNDMkUzMzRGQTJENzNENEZENDNEMjQxRTBDMEMxNDIyM0JDNjRFRjQ3NkU1MUI2NCIsImVtcHJlc2EiOjEsInZlcnNhbyI6IjkzOSIsInJlc3RyaWNvZXMiOiJ7XCJlbmRwb2ludHNfbGliZXJhZG9zXCI6W10sXCJlbWJhcmNhZG9yZXNfY25walwiOltdfSJ9LCJ0eXBlIjoiYWNjZXNzIiwiZnJlc2giOnRydWUsImlhdCI6MTc3MDgxNDgwMSwiZXhwIjoxNzcwODE4NDAxLCJuYmYiOjE3NzA4MTQ4MDAsImp0aSI6ImRlY2M5ZDVjLWY3ZjAtNGJkNS1iNzg4LTJhYjkwNTVjYWEwMiJ9.TwlHYQjX0OjRPJlh0utb-xgShhXIaA44tP9cluH7tt4';
+        const API_BASE_URL = 'https://api.bsoft.com.br/sistema/v2';
+        
+        // Endpoint correto conforme documentação Bsoft
+        const ENDPOINT_OCORRENCIAS = '/cte/ocorrencias';
+        
+        // IMPORTANTE: Se você tiver problemas com CORS, use um proxy ou serverless function
+        // Exemplo de proxy: https://cors-anywhere.herokuapp.com/
+        // Para produção, recomendo criar uma função serverless ou endpoint no seu backend
+
+        // ===========================
+        // MAPEAMENTO DE STATUS
+        // ===========================
+        const statusMap = {
+            '0': {
+                title: 'Carga Coletada',
+                description: 'Processo de transporte já iniciado',
+                class: 'status-coletada',
+                icon: '📦'
+            },
+            '1': {
+                title: 'Entrega Finalizada',
+                description: 'Entrega realizada normalmente',
+                class: 'status-finalizada',
+                icon: '✅'
+            }
+        };
+
+        // ===========================
+        // ELEMENTOS DO DOM
+        // ===========================
+        const form = document.getElementById('trackingForm');
+        const loading = document.getElementById('loading');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        const timelineContainer = document.getElementById('timelineContainer');
+        const timeline = document.getElementById('timeline');
+        const trackingInfo = document.getElementById('trackingInfo');
+        const searchBtn = document.getElementById('searchBtn');
+        const documentNumberInput = document.getElementById('documentNumber');
+        const cnpjCpfInput = document.getElementById('cnpjCpf');
+
+        // ===========================
+        // MÁSCARAS DE INPUT
+        // ===========================
+        cnpjCpfInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            if (value.length <= 11) {
+                // Máscara CPF: 000.000.000-00
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            } else {
+                // Máscara CNPJ: 00.000.000/0000-00
+                value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+                value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+                value = value.replace(/(\d{4})(\d)/, '$1-$2');
+            }
+            
+            e.target.value = value;
+        });
+
+        // ===========================
+        // FUNÇÃO PRINCIPAL DE BUSCA
+        // ===========================
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const documentNumber = documentNumberInput.value.trim();
+            const cnpjCpf = cnpjCpfInput.value.replace(/\D/g, '');
+            
+            if (!documentNumber || !cnpjCpf) {
+                showError('Por favor, preencha todos os campos.');
+                return;
+            }
+
+            await fetchTrackingData(documentNumber, cnpjCpf);
+        });
+
+        // ===========================
+        // BUSCAR DADOS DA API
+        // ===========================
+        async function fetchTrackingData(documentNumber, cnpjCpf) {
+            showLoading();
+            hideError();
+            hideTimeline();
+
+            try {
+                // Endpoint correto da API Bsoft: GET /cte/ocorrencias
+                // Parâmetros: nota_fiscal (opcional), data_inicial, data_final
+                
+                const endpoint = `${API_BASE_URL}${ENDPOINT_OCORRENCIAS}`;
+                const params = new URLSearchParams({
+                    nota_fiscal: documentNumber
+                    // data_inicial e data_final são opcionais
+                    // Se quiser filtrar por período, adicione aqui no formato DD/MM/AAAA
+                });
+
+                const response = await fetch(`${endpoint}?${params}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${API_TOKEN}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('Encomenda não encontrada. Verifique os dados e tente novamente.');
+                    } else if (response.status === 401) {
+                        throw new Error('Token de acesso inválido. Entre em contato com o suporte.');
+                    } else if (response.status === 403) {
+                        throw new Error('Acesso negado. Verifique suas credenciais.');
+                    } else {
+                        throw new Error(`Erro ao buscar dados: ${response.status}`);
+                    }
+                }
+
+                const data = await response.json();
+                
+                // Processar e exibir os dados
+                processTrackingData(data, documentNumber);
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                
+                if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+                    showError('Erro de conexão. Por favor, verifique se o proxy/serverless está configurado corretamente.');
+                } else {
+                    showError(error.message);
+                }
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // ===========================
+        // PROCESSAR DADOS DA API
+        // ===========================
+        function processTrackingData(data, documentNumber) {
+            // Estrutura da API Bsoft:
+            // Array de objetos com { cte: { ocorrencias: [...] } }
+            
+            let occurrences = [];
+            
+            if (Array.isArray(data) && data.length > 0) {
+                // Extrair todas as ocorrências de todos os CT-es retornados
+                data.forEach(item => {
+                    if (item.cte && item.cte.ocorrencias) {
+                        occurrences = occurrences.concat(item.cte.ocorrencias);
+                    }
+                });
+            }
+
+            if (!occurrences || occurrences.length === 0) {
+                showError('Nenhuma ocorrência encontrada para esta encomenda.');
+                return;
+            }
+
+            // Ordenar por data (mais recente primeiro)
+            occurrences.sort((a, b) => {
+                const dateA = new Date(a.data_hora);
+                const dateB = new Date(b.data_hora);
+                return dateB - dateA;
+            });
+
+            // Renderizar informações de rastreamento
+            renderTrackingInfo(data, documentNumber, occurrences);
+
+            // Renderizar timeline
+            renderTimeline(occurrences);
+        }
+
+        // ===========================
+        // RENDERIZAR INFORMAÇÕES
+        // ===========================
+        function renderTrackingInfo(data, documentNumber, occurrences) {
+            const lastOccurrence = occurrences[0];
+            const cteInfo = data[0]?.cte || {};
+            
+            trackingInfo.innerHTML = `
+                <h3>Informações do Rastreamento</h3>
+                <div class="tracking-info-grid">
+                    <div class="info-item">
+                        <label>Nota Fiscal</label>
+                        <span>${documentNumber}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>CT-e</label>
+                        <span>${cteInfo.numero || 'N/A'} - Série ${cteInfo.serie || 'N/A'}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Status Atual</label>
+                        <span>${getStatusTitle(lastOccurrence)}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Última Atualização</label>
+                        <span>${formatDate(lastOccurrence.data_hora)}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ===========================
+        // RENDERIZAR TIMELINE
+        // ===========================
+        function renderTimeline(occurrences) {
+            timeline.innerHTML = '';
+
+            if (occurrences.length === 0) {
+                timeline.innerHTML = `
+                    <div class="no-results">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                        </svg>
+                        <p>Nenhuma ocorrência registrada para esta encomenda.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            occurrences.forEach((occurrence, index) => {
+                const statusCode = String(occurrence.codigo || occurrence.codigoOcorrencia || '');
+                const statusInfo = statusMap[statusCode] || {
+                    title: occurrence.descricao || 'Ocorrência Registrada',
+                    description: occurrence.observacao || '',
+                    class: '',
+                    icon: '📍'
+                };
+
+                const timelineItem = document.createElement('div');
+                timelineItem.className = `timeline-item ${statusInfo.class}`;
+                
+                // Extrair informações da nota fiscal se disponível
+                const notaFiscal = occurrence.nota_fiscal;
+                const nfInfo = notaFiscal ? `<br><strong>NF:</strong> ${notaFiscal.numero} - Série ${notaFiscal.serie}` : '';
+                
+                timelineItem.innerHTML = `
+                    <div class="timeline-icon">${statusInfo.icon}</div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">
+                            ${formatDateTime(occurrence.data_hora)}
+                        </div>
+                        <div class="timeline-title">${statusInfo.title}</div>
+                        <div class="timeline-description">
+                            ${statusInfo.description}
+                            ${nfInfo}
+                        </div>
+                    </div>
+                `;
+                timeline.appendChild(timelineItem);
+            });
+
+            showTimeline();
+        }
+
+        // ===========================
+        // FUNÇÕES AUXILIARES
+        // ===========================
+        function getStatusTitle(occurrence) {
+            const statusCode = String(occurrence.codigo || '');
+            return statusMap[statusCode]?.title || occurrence.descricao || 'Em trânsito';
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Data não disponível';
+            // Formato da API: "2020-09-29 10:09:27"
+            const date = new Date(dateString.replace(' ', 'T'));
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        function formatDateTime(dateString) {
+            if (!dateString) return 'Data/hora não disponível';
+            // Formato da API: "2020-09-29 10:09:27"
+            const date = new Date(dateString.replace(' ', 'T'));
+            return date.toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function showLoading() {
+            loading.classList.add('active');
+            searchBtn.disabled = true;
+        }
+
+        function hideLoading() {
+            loading.classList.remove('active');
+            searchBtn.disabled = false;
+        }
+
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.add('active');
+        }
+
+        function hideError() {
+            errorMessage.classList.remove('active');
+        }
+
+        function showTimeline() {
+            timelineContainer.classList.add('active');
+        }
+
+        function hideTimeline() {
+            timelineContainer.classList.remove('active');
+        }
+
+        // ===========================
+        // DADOS DE DEMONSTRAÇÃO (REMOVER EM PRODUÇÃO)
+        // ===========================
+        // Descomente este bloco para testar o layout sem a API
+        /*
+        function loadDemoData() {
+            const demoData = {
+                ocorrencias: [
+                    {
+                        codigo: '1',
+                        dataHora: '2026-02-11T14:30:00',
+                        descricao: 'Entrega realizada normalmente',
+                        local: 'São Paulo - SP',
+                        motorista: 'João Silva'
+                    },
+                    {
+                        codigo: '3',
+                        dataHora: '2026-02-11T09:15:00',
+                        descricao: 'Em rota de entrega',
+                        local: 'São Paulo - SP'
+                    },
+                    {
+                        codigo: '0',
+                        dataHora: '2026-02-10T16:45:00',
+                        descricao: 'Processo de transporte já iniciado',
+                        local: 'Barueri - SP'
+                    }
+                ]
+            };
+            
+            processTrackingData(demoData, '12345678');
+        }
+        
+        // Botão para carregar demo
+        setTimeout(() => {
+            if (confirm('Carregar dados de demonstração?')) {
+                loadDemoData();
+            }
+        }, 1000);
+        */
+    </script>
+</body>
+</html>
