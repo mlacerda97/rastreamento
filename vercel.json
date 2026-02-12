@@ -2,7 +2,7 @@
     "version": 2,
     "builds": [
         {
-            "src": "api/rastreamento.js",
+            "src": "api/busca-encomenda.js",
             "use": "@vercel/node"
         },
         {
@@ -23,8 +23,8 @@
     ],
     "routes": [
         {
-            "src": "/api/rastreamento",
-            "dest": "/api/rastreamento.js"
+            "src": "/api/busca-encomenda",
+            "dest": "/api/busca-encomenda.js"
         },
         {
             "src": "/(.*)",
