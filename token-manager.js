@@ -49,10 +49,11 @@ async function fazerLogin(credentials) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                usuario,
-                senha,
-                tag,
-                empresa
+                usuario: usuario,
+                senha: senha,
+                senha_sistema: senha,
+                tag: tag,
+                empresa: empresa
             })
         });
 
