@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -150,8 +151,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .error-message {
@@ -244,17 +250,32 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-        .timeline-item:nth-child(1) { animation-delay: 0.1s; }
-        .timeline-item:nth-child(2) { animation-delay: 0.2s; }
-        .timeline-item:nth-child(3) { animation-delay: 0.3s; }
-        .timeline-item:nth-child(4) { animation-delay: 0.4s; }
-        .timeline-item:nth-child(5) { animation-delay: 0.5s; }
+        .timeline-item:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .timeline-item:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .timeline-item:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .timeline-item:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .timeline-item:nth-child(5) {
+            animation-delay: 0.5s;
+        }
 
         .timeline-icon {
             position: absolute;
@@ -283,7 +304,7 @@
             color: var(--color-white);
         }
 
-        .timeline-item.status-finalizada ~ .timeline-item::before {
+        .timeline-item.status-finalizada~.timeline-item::before {
             background: var(--color-success);
         }
 
@@ -348,7 +369,8 @@
                 font-size: 1.5rem;
             }
 
-            .search-card, .timeline-container {
+            .search-card,
+            .timeline-container {
                 padding: 20px;
             }
 
@@ -373,10 +395,11 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚚 Rastreamento de Encomendas</h1>
+            <h1>🚚 Rastreamento de Encomendas - E4log</h1>
             <p>Acompanhe o status da sua entrega em tempo real</p>
         </div>
 
@@ -384,21 +407,14 @@
             <form id="trackingForm">
                 <div class="form-group">
                     <label for="documentNumber">Número da Nota Fiscal (NF) ou CT-e</label>
-                    <input 
-                        type="text" 
-                        id="documentNumber" 
-                        placeholder="Ex: 12345678" 
-                        required
-                    >
+                    <input type="text" id="documentNumber" placeholder="Ex: 12345678" required>
                 </div>
                 <div class="form-group">
-                    <label for="cnpjCpf">CNPJ ou CPF</label>
-                    <input 
-                        type="text" 
-                        id="cnpjCpf" 
-                        placeholder="Ex: 00.000.000/0000-00" 
-                        required
-                    >
+                    <label for="cnpjCpf">CNPJ ou CPF do Destinatário</label>
+                    <input type="text" id="cnpjCpf" placeholder="Ex: 00.000.000/0000-00 ou 000.000.000-00" required>
+                    <small style="color: #6c757d; font-size: 0.85rem; display: block; margin-top: 5px;">
+                        ℹ️ Necessário para validar o acesso à nota fiscal
+                    </small>
                 </div>
                 <button type="submit" class="btn" id="searchBtn">
                     <span>🔍 Rastrear Encomenda</span>
@@ -426,11 +442,11 @@
         // CONFIGURAÇÃO DA API
         // ===========================
         const API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsiaWRfYnNvZnQiOiIzNTNDMzIzOTM0MzMiLCJ0YWciOiJFVEwyNzciLCJ1c3VhcmlvIjoiTUFUSEVVUyIsImhvc3RuYW1lIjoiNEUyQjI3MDg2OUNENDEyRDE0MDM2NERFNThERjU2IiwiZGF0YWJhc2UiOiJBMjg1QUU0RkUzMUUwODM4RDYwRDNGRTcxQ0REMDUyMTFGRDMwNTIxQ0Y2Q0IzNzZGMDYxRDEyRTUwQzdDOTQ4MkYyRDIyMjAxRTBENzJFRDYzQzJDQ0NCQ0YzNTIxMjMxQzA3NzhFMjY2QzQ0MzNDMkUzMzRGQTJENzNENEZENDNEMjQxRTBDMEMxNDIyM0JDNjRFRjQ3NkU1MUI2NCIsImVtcHJlc2EiOjEsInZlcnNhbyI6IjkzOSIsInJlc3RyaWNvZXMiOiJ7XCJlbmRwb2ludHNfbGliZXJhZG9zXCI6W10sXCJlbWJhcmNhZG9yZXNfY25walwiOltdfSJ9LCJ0eXBlIjoiYWNjZXNzIiwiZnJlc2giOnRydWUsImlhdCI6MTc3MDgxNDgwMSwiZXhwIjoxNzcwODE4NDAxLCJuYmYiOjE3NzA4MTQ4MDAsImp0aSI6ImRlY2M5ZDVjLWY3ZjAtNGJkNS1iNzg4LTJhYjkwNTVjYWEwMiJ9.TwlHYQjX0OjRPJlh0utb-xgShhXIaA44tP9cluH7tt4';
-        const API_BASE_URL = 'https://api.bsoft.com.br/sistema/v2';
-        
+        const API_BASE_URL = 'http://localhost:3000';
+
         // Endpoint correto conforme documentação Bsoft
         const ENDPOINT_OCORRENCIAS = '/cte/ocorrencias';
-        
+
         // IMPORTANTE: Se você tiver problemas com CORS, use um proxy ou serverless function
         // Exemplo de proxy: https://cors-anywhere.herokuapp.com/
         // Para produção, recomendo criar uma função serverless ou endpoint no seu backend
@@ -470,9 +486,9 @@
         // ===========================
         // MÁSCARAS DE INPUT
         // ===========================
-        cnpjCpfInput.addEventListener('input', function(e) {
+        cnpjCpfInput.addEventListener('input', function (e) {
             let value = e.target.value.replace(/\D/g, '');
-            
+
             if (value.length <= 11) {
                 // Máscara CPF: 000.000.000-00
                 value = value.replace(/(\d{3})(\d)/, '$1.$2');
@@ -485,21 +501,26 @@
                 value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
                 value = value.replace(/(\d{4})(\d)/, '$1-$2');
             }
-            
+
             e.target.value = value;
         });
 
         // ===========================
         // FUNÇÃO PRINCIPAL DE BUSCA
         // ===========================
-        form.addEventListener('submit', async function(e) {
+        form.addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const documentNumber = documentNumberInput.value.trim();
             const cnpjCpf = cnpjCpfInput.value.replace(/\D/g, '');
-            
-            if (!documentNumber || !cnpjCpf) {
-                showError('Por favor, preencha todos os campos.');
+
+            if (!documentNumber) {
+                showError('Por favor, informe o número da Nota Fiscal.');
+                return;
+            }
+
+            if (!cnpjCpf) {
+                showError('Por favor, informe o CNPJ ou CPF.');
                 return;
             }
 
@@ -515,50 +536,28 @@
             hideTimeline();
 
             try {
-                // Endpoint correto da API Bsoft: GET /cte/ocorrencias
-                // Parâmetros: nota_fiscal (opcional), data_inicial, data_final
-                
-                const endpoint = `${API_BASE_URL}${ENDPOINT_OCORRENCIAS}`;
-                const params = new URLSearchParams({
-                    nota_fiscal: documentNumber
-                    // data_inicial e data_final são opcionais
-                    // Se quiser filtrar por período, adicione aqui no formato DD/MM/AAAA
-                });
-
-                const response = await fetch(`${endpoint}?${params}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${API_TOKEN}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    }
-                });
+                const response = await fetch(
+                    `${API_BASE_URL}/api/rastreamento?nota_fiscal=${documentNumber}&cnpjCpf=${cnpjCpf}`
+                );
 
                 if (!response.ok) {
                     if (response.status === 404) {
-                        throw new Error('Encomenda não encontrada. Verifique os dados e tente novamente.');
-                    } else if (response.status === 401) {
-                        throw new Error('Token de acesso inválido. Entre em contato com o suporte.');
+                        throw new Error('Nota fiscal não encontrada. Verifique o número e tente novamente.');
                     } else if (response.status === 403) {
-                        throw new Error('Acesso negado. Verifique suas credenciais.');
+                        throw new Error('CNPJ/CPF não autorizado a consultar esta nota fiscal. Verifique se você é o destinatário ou remetente.');
+                    } else if (response.status === 401) {
+                        throw new Error('Erro de autenticação. Entre em contato com o suporte.');
                     } else {
                         throw new Error(`Erro ao buscar dados: ${response.status}`);
                     }
                 }
 
                 const data = await response.json();
-                
-                // Processar e exibir os dados
                 processTrackingData(data, documentNumber);
-                
+
             } catch (error) {
                 console.error('Erro:', error);
-                
-                if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
-                    showError('Erro de conexão. Por favor, verifique se o proxy/serverless está configurado corretamente.');
-                } else {
-                    showError(error.message);
-                }
+                showError(error.message || 'Erro ao buscar dados. Tente novamente.');
             } finally {
                 hideLoading();
             }
@@ -570,9 +569,9 @@
         function processTrackingData(data, documentNumber) {
             // Estrutura da API Bsoft:
             // Array de objetos com { cte: { ocorrencias: [...] } }
-            
+
             let occurrences = [];
-            
+
             if (Array.isArray(data) && data.length > 0) {
                 // Extrair todas as ocorrências de todos os CT-es retornados
                 data.forEach(item => {
@@ -602,12 +601,33 @@
         }
 
         // ===========================
-        // RENDERIZAR INFORMAÇÕES
+        // RENDERIZAR INFORMAÇÕES (CORRIGIDO)
         // ===========================
         function renderTrackingInfo(data, documentNumber, occurrences) {
             const lastOccurrence = occurrences[0];
-            const cteInfo = data[0]?.cte || {};
-            
+
+            // Pega o primeiro item do array (que é o CT-e autorizado)
+            const itemDados = data[0] || {};
+            const cteInfo = itemDados.cte || {};
+
+            // 1. NOME: Pega a variável 'nome_destinatario_xml' que criamos no server.js
+            // Se não tiver, tenta pegar do objeto padrão
+            const nomeDestinatario = itemDados.nome_destinatario_xml ||
+                (cteInfo.destinatario ? cteInfo.destinatario.nome : 'Não informado');
+
+            // 2. DATA: Pega a variável 'previsao_entrega' que criamos no server.js
+            // Ela já vem formatada (DD/MM/AAAA) do servidor, não precisa converter
+            const previsaoEntrega = itemDados.previsao_entrega ||
+                cteInfo.previsao_entrega;
+
+            // Define a cor e o texto da previsão
+            let htmlPrevisao;
+            if (previsaoEntrega && previsaoEntrega !== 'Não informada') {
+                htmlPrevisao = `<span style="color: #28a745; font-weight: 700;">${previsaoEntrega}</span>`;
+            } else {
+                htmlPrevisao = `<span style="color: #6c757d;">Não informada</span>`;
+            }
+
             trackingInfo.innerHTML = `
                 <h3>Informações do Rastreamento</h3>
                 <div class="tracking-info-grid">
@@ -627,9 +647,18 @@
                         <label>Última Atualização</label>
                         <span>${formatDate(lastOccurrence.data_hora)}</span>
                     </div>
+                    <div class="info-item">
+                        <label>Destinatário</label>
+                        <span style="text-transform: uppercase;">${nomeDestinatario}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Previsão de Entrega</label>
+                        ${htmlPrevisao}
+                    </div>
                 </div>
             `;
         }
+
 
         // ===========================
         // RENDERIZAR TIMELINE
@@ -660,11 +689,11 @@
 
                 const timelineItem = document.createElement('div');
                 timelineItem.className = `timeline-item ${statusInfo.class}`;
-                
+
                 // Extrair informações da nota fiscal se disponível
                 const notaFiscal = occurrence.nota_fiscal;
                 const nfInfo = notaFiscal ? `<br><strong>NF:</strong> ${notaFiscal.numero} - Série ${notaFiscal.serie}` : '';
-                
+
                 timelineItem.innerHTML = `
                     <div class="timeline-icon">${statusInfo.icon}</div>
                     <div class="timeline-content">
@@ -781,4 +810,5 @@
         */
     </script>
 </body>
+
 </html>

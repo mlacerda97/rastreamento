@@ -1,0 +1,36 @@
+{
+  "name": "rastreamento-e4log",
+  "version": "1.0.0",
+  "description": "Sistema de rastreamento de encomendas E4Log integrado com API Bsoft",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mlacerda97/rastreamento.git"
+  },
+  "keywords": [
+    "rastreamento",
+    "e4log",
+    "bsoft",
+    "logistica"
+  ],
+  "author": "E4Log",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/mlacerda97/rastreamento/issues"
+  },
+  "homepage": "https://github.com/mlacerda97/rastreamento#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

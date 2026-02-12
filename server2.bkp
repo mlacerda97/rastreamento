@@ -1,0 +1,220 @@
+const express = require('express');
+const cors = require('cors');
+const fetch = require('node-fetch');
+
+const app = express();
+app.use(cors());
+app.use(express.static('.'));
+
+const API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsiaWRfYnNvZnQiOiIxNjFEMTExNjE3MTAiLCJ0YWciOiJFVEwyNzciLCJ1c3VhcmlvIjoiTUFUSEVVUyIsImhvc3RuYW1lIjoiRkI3OUYxNzVGQzc5RUE3N0VBNUFERDU0RDc1RkM5IiwiZGF0YWJhc2UiOiI0MzI2Q0Q2Qzg2QkNBRTQ3RTcxQTJBQ0E3OUJFNjI4Q0Y0MDkzMEQ2NzVCMTc1QjlCREJEQjVDM0NCNDM0NUNGNTdDNUJBQjhBNjg1RkE2NERENTlCM0Q0MzU1OEMyNDEzRTI1MUEwNDA5NjlFRjZGRTE0RkFCQzYzQzQxQjNCMEQwNTBDMkIwQjA0RkRGNzU4MDg3OERFRTZDODFGQSIsImVtcHJlc2EiOjEsInZlcnNhbyI6IjkzOSIsInJlc3RyaWNvZXMiOiJ7XCJlbmRwb2ludHNfbGliZXJhZG9zXCI6W10sXCJlbWJhcmNhZG9yZXNfY25walwiOltdfSJ9LCJ0eXBlIjoiYWNjZXNzIiwiZnJlc2giOnRydWUsImlhdCI6MTc3MDgzMzcyNCwiZXhwIjoxNzcwODM3MzI0LCJuYmYiOjE3NzA4MzM3MjMsImp0aSI6IjU0OGMzZmM0LTZlNDgtNDkyOC05YjQ4LWE4ZDJkZDg5ZWZhNCJ9.7VMLMCFuxnu32GoQ50rviU1nL4i-RpYlBVOYJtG63NY';
+const API_BASE = 'https://api.bsoft.com.br/sistema/v2';
+
+// ===========================
+// FUNÇÃO AUXILIAR: Extrair Tag XML
+// ===========================
+function extrairTagXML(xml, tagName) {
+    const parts = tagName.split('/');
+    
+    if (parts.length > 1) {
+        // Busca aninhada (ex: 'dest/xNome')
+        const parentTag = parts[0];
+        const childTag = parts[1];
+        
+        // 1. Isola o bloco pai (ex: tudo dentro de <dest>...</dest>)
+        const parentRegex = new RegExp(`<${parentTag}>([\\s\\S]*?)<\\/${parentTag}>`, 'i');
+        const parentMatch = xml.match(parentRegex);
+        
+        if (parentMatch) {
+            // 2. Busca a tag filha apenas dentro desse bloco
+            const childRegex = new RegExp(`<${childTag}>([^<]*)<\\/${childTag}>`, 'i');
+            const childMatch = parentMatch[1].match(childRegex);
+            return childMatch ? childMatch[1].trim() : null;
+        }
+        return null;
+    } else {
+        // Busca simples (ex: 'dPrev')
+        const pattern = new RegExp(`<${tagName}>([^<]*)<\\/${tagName}>`, 'i');
+        const match = xml.match(pattern);
+        return match ? match[1].trim() : null;
+    }
+}
+
+app.get('/api/rastreamento', async (req, res) => {
+    const { nota_fiscal, cnpjCpf } = req.query;
+
+    console.log('\n' + '='.repeat(80));
+    console.log('🚀 NOVA REQUISIÇÃO');
+    console.log('='.repeat(80));
+
+    if (!nota_fiscal) {
+        return res.status(400).json({ error: 'Nota fiscal não informada' });
+    }
+
+    if (!cnpjCpf) {
+        return res.status(400).json({ error: 'CNPJ/CPF não informado' });
+    }
+
+    try {
+        console.log(`📋 NF: ${nota_fiscal}`);
+        console.log(`👤 CNPJ/CPF: ${cnpjCpf}`);
+
+        // ========================================
+        // PASSO 1: Buscar Ocorrências
+        // ========================================
+        const urlOcorrencias = `${API_BASE}/cte/ocorrencias?nota_fiscal=${nota_fiscal}`;
+        console.log(`\n🔍 STEP 1: Buscando ocorrências`);
+        console.log(`   URL: ${urlOcorrencias}`);
+
+        const ocorrenciasResponse = await fetch(urlOcorrencias, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${API_TOKEN}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        });
+
+        if (ocorrenciasResponse.status === 401) {
+            return res.status(401).json({ error: 'Token inválido ou expirado' });
+        }
+
+        if (!ocorrenciasResponse.ok) {
+            if (ocorrenciasResponse.status === 404) {
+                return res.status(404).json({ error: 'Nota fiscal não encontrada' });
+            }
+            const errorText = await ocorrenciasResponse.text();
+            return res.status(ocorrenciasResponse.status).json({
+                error: `Erro ao buscar ocorrências: ${ocorrenciasResponse.status}`,
+                details: errorText
+            });
+        }
+
+        const ocorrenciasData = await ocorrenciasResponse.json();
+
+        if (!ocorrenciasData || !Array.isArray(ocorrenciasData) || ocorrenciasData.length === 0) {
+            return res.status(404).json({ error: 'Nenhuma ocorrência encontrada para esta nota fiscal' });
+        }
+
+        console.log(`📦 ${ocorrenciasData.length} CT-e(s) encontrado(s)`);
+
+        // ========================================
+        // PASSO 2: Validar CNPJ/CPF e Extrair Dados
+        // ========================================
+        const cnpjCpfLimpo = cnpjCpf.replace(/\D/g, '');
+        let cteAutorizado = null;
+
+        for (const itemOcorrencia of ocorrenciasData) {
+            const cteOcorrencia = itemOcorrencia.cte;
+            if (!cteOcorrencia || !cteOcorrencia.id) continue;
+
+            const cteId = cteOcorrencia.id;
+            console.log(`\n🔑 STEP 2: Validando CT-e ID: ${cteId}`);
+
+            // BUSCAR XML
+            const urlXml = `${API_BASE}/cte/${cteId}/xml`;
+            const xmlResponse = await fetch(urlXml, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${API_TOKEN}`,
+                    'Accept': 'application/xml, text/xml'
+                }
+            });
+
+            if (!xmlResponse.ok) {
+                console.log(`   ⚠️ Erro ao buscar XML: ${xmlResponse.status}`);
+                continue;
+            }
+
+            const xmlText = await xmlResponse.text();
+            console.log(`   ✅ XML recebido (${xmlText.length} chars)`);
+
+            // --- EXTRAÇÃO INTELIGENTE DO XML ---
+            
+            // 1. Nome do Destinatário (Prioridade para <dest><xNome>)
+            const nomeDestinatario = extrairTagXML(xmlText, 'dest/xNome') || 'Nome não identificado';
+
+            // 2. Data de Previsão (<dPrev>) com formatação
+            let dataPrevisaoFormatada = null;
+            const dataPrevisaoRaw = extrairTagXML(xmlText, 'dPrev');
+            
+            if (dataPrevisaoRaw) {
+                // Converte AAAA-MM-DD para DD/MM/AAAA
+                const parts = dataPrevisaoRaw.split('-');
+                if (parts.length === 3) {
+                    dataPrevisaoFormatada = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                } else {
+                    dataPrevisaoFormatada = dataPrevisaoRaw; // Mantém original se formato for estranho
+                }
+            }
+
+            // 3. Documentos para Validação (CPF/CNPJ)
+            // Extrai todos os números que pareçam CPF ou CNPJ dentro das tags corretas
+            const documentosEncontrados = [];
+            
+            // Helper para adicionar docs encontrados via Regex
+            const addDocs = (regex) => {
+                let match;
+                while ((match = regex.exec(xmlText)) !== null) {
+                    documentosEncontrados.push(match[1]);
+                }
+            };
+
+            addDocs(/<CNPJ>(\d+)<\/CNPJ>/g);
+            addDocs(/<CPF>(\d+)<\/CPF>/g);
+            
+            // Verifica permissão
+            if (documentosEncontrados.includes(cnpjCpfLimpo)) {
+                console.log('   ✅ CNPJ/CPF AUTORIZADO!');
+                console.log(`   👤 Destinatário: ${nomeDestinatario}`);
+                console.log(`   📅 Previsão: ${dataPrevisaoFormatada || 'Não informada'}`);
+
+                // Monta o objeto final enriquecido
+                cteAutorizado = {
+                    ...itemOcorrencia,
+                    cte: {
+                        ...itemOcorrencia.cte,
+                        // Sobrescreve/Adiciona os dados corretos extraídos do XML
+                        destinatario: {
+                            ...itemOcorrencia.cte.destinatario,
+                            nome: nomeDestinatario 
+                        },
+                        previsao_entrega: dataPrevisaoFormatada
+                    },
+                    // Campos extras na raiz para facilitar acesso no front
+                    previsao_entrega: dataPrevisaoFormatada,
+                    nome_destinatario_xml: nomeDestinatario
+                };
+                
+                break; // Encontrou e validou, pode parar o loop
+            } else {
+                console.log('   ❌ CNPJ/CPF não faz parte deste CT-e');
+            }
+        }
+
+        if (!cteAutorizado) {
+            console.log('\n❌ Acesso Negado: Documento não vinculado a nenhuma entrega encontrada.');
+            return res.status(403).json({
+                error: 'CNPJ/CPF não autorizado a consultar esta nota fiscal'
+            });
+        }
+
+        console.log('\n✅ STEP 3: Retornando dados finais');
+        console.log('='.repeat(80) + '\n');
+        
+        // Retorna array para manter compatibilidade com seu front
+        res.json([cteAutorizado]);
+
+    } catch (error) {
+        console.error('\n❌ ERRO FATAL:', error);
+        res.status(500).json({
+            error: 'Erro interno no servidor',
+            details: error.message
+        });
+    }
+});
+
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`\n✅ Servidor rodando em http://localhost:${PORT}`);
+    console.log(`📄 Acesse: http://localhost:${PORT}/Rastreamento.html\n`);
+});
