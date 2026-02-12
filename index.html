@@ -536,7 +536,7 @@
 
             try {
                 const response = await fetch(
-                    `${API_BASE_URL}api/busca-encomenda?nota_fiscal=${documentNumber}&cnpjCpf=${cnpjCpf}`
+                    `${API_BASE_URL}api/busca-encomenda.js?nota_fiscal=${documentNumber}&cnpjCpf=${cnpjCpf}`
                 );
 
                 if (!response.ok) {
