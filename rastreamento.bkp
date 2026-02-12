@@ -441,6 +441,7 @@
         // ===========================
         // CONFIGURAÇÃO DA API
         // ===========================
+        const API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOnsiaWRfYnNvZnQiOiIzNTNDMzIzOTM0MzMiLCJ0YWciOiJFVEwyNzciLCJ1c3VhcmlvIjoiTUFUSEVVUyIsImhvc3RuYW1lIjoiNEUyQjI3MDg2OUNENDEyRDE0MDM2NERFNThERjU2IiwiZGF0YWJhc2UiOiJBMjg1QUU0RkUzMUUwODM4RDYwRDNGRTcxQ0REMDUyMTFGRDMwNTIxQ0Y2Q0IzNzZGMDYxRDEyRTUwQzdDOTQ4MkYyRDIyMjAxRTBENzJFRDYzQzJDQ0NCQ0YzNTIxMjMxQzA3NzhFMjY2QzQ0MzNDMkUzMzRGQTJENzNENEZENDNEMjQxRTBDMEMxNDIyM0JDNjRFRjQ3NkU1MUI2NCIsImVtcHJlc2EiOjEsInZlcnNhbyI6IjkzOSIsInJlc3RyaWNvZXMiOiJ7XCJlbmRwb2ludHNfbGliZXJhZG9zXCI6W10sXCJlbWJhcmNhZG9yZXNfY25walwiOltdfSJ9LCJ0eXBlIjoiYWNjZXNzIiwiZnJlc2giOnRydWUsImlhdCI6MTc3MDgxNDgwMSwiZXhwIjoxNzcwODE4NDAxLCJuYmYiOjE3NzA4MTQ4MDAsImp0aSI6ImRlY2M5ZDVjLWY3ZjAtNGJkNS1iNzg4LTJhYjkwNTVjYWEwMiJ9.TwlHYQjX0OjRPJlh0utb-xgShhXIaA44tP9cluH7tt4';
         const API_BASE_URL = 'https://rastreamento-p5ap.vercel.app/';
 
         // Endpoint correto conforme documentação Bsoft
@@ -536,7 +537,7 @@
 
             try {
                 const response = await fetch(
-                    `${API_BASE_URL}api/rastreamento?nota_fiscal=${documentNumber}&cnpjCpf=${cnpjCpf}`
+                    `${API_BASE_URL}/api/rastreamento?nota_fiscal=${documentNumber}&cnpjCpf=${cnpjCpf}`
                 );
 
                 if (!response.ok) {
