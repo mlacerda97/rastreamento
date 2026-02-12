@@ -1,27 +1,23 @@
 {
-  "version": 2,
-  "env": {
-    "BSOFT_API_TOKEN": "@bsoft-api-token",
-    "NODE_ENV": "production"
-  },
-  "builds": [
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "Rastreamento.html",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ]
+    "version": 2,
+    "builds": [
+        {
+            "src": "api/rastreamento.js",
+            "use": "@vercel/node"
+        },
+        {
+            "src": "Rastreamento.html",
+            "use": "@vercel/static"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/rastreamento",
+            "dest": "/api/rastreamento.js"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/$1"
+        }
+    ]
 }
