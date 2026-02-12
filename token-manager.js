@@ -51,7 +51,7 @@ async function fazerLogin(credentials) {
             body: JSON.stringify({
                 usuario: usuario,
                 senha: senha,
-                senha_sistema: senha,
+                senha_sistema: "",
                 tag: tag,
                 empresa: empresa
             })
